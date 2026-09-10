@@ -4,6 +4,8 @@ An auto insurance claim prediction project using machine learning.
 
 A team project that predicts whether an auto insurance policyholder will file a claim within six months by comparing multiple classification models on structured policyholder data.
 
+I was responsible for all parts except the decision tree, the random forest, and code organization. 
+
 ## Project Structure
 
 ```text
@@ -196,7 +198,3 @@ The project uses the following R packages:
 - **Matrix** — Sparse matrix representation
 - **ggplot2** — Data visualization
 - **dplyr** — Data manipulation
-
-## Team Project
-
-This was completed as a team project, with responsibilities divided across data processing, modeling, visualization, and model evaluation.
