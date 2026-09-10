@@ -76,6 +76,7 @@ The selected hyperparameters were then used to train the final XGBoost model usi
 
 For the Decision Tree, cost-complexity pruning was performed using the **1-SE rule** based on cross-validation error.
 
+
 <img width="1340" height="857" alt="Decision Tree Cost-Complexity Plot" src="https://github.com/user-attachments/assets/cc28c4d2-b131-4a85-91c4-5510386221be" />
 
 ### 6. Classification Threshold Analysis
@@ -93,9 +94,11 @@ Because the claim class is highly imbalanced, we examined how different threshol
 
 For Logistic Regression and XGBoost, thresholds from 0.10 to 0.90 were evaluated.
 
-For XGBoost, Recall reached 1.00 at thresholds around 0.10–0.16. However, maximizing Recall alone can increase false positives and does not necessarily maximize F1 Score.
+For XGBoost, Recall reached 1.00 at thresholds around 0.10–0.16. However, such low thresholds also generate substantially more false positives. Therefore, threshold selection involves a trade-off between claim detection and overall classification performance.
+
 
 <img width="1375" height="715" alt="XGBoost Recall vs Threshold" src="https://github.com/user-attachments/assets/3e4f84c6-dd76-4ef6-a3be-1f734f25fd5a" />
+
 
 This analysis illustrates the trade-off between identifying more actual claims and maintaining overall classification performance.
 
@@ -146,7 +149,9 @@ These results demonstrate the trade-off between improving claim detection and co
 
 Confusion matrices were used to examine the model's True Positives, True Negatives, False Positives, and False Negatives.
 
+
 <img width="1471" height="738" alt="XGBoost Confusion Matrix" src="https://github.com/user-attachments/assets/69061038-8361-4e30-86f3-ccdce2a1ef8c" />
+
 
 Because the primary objective is to identify potential claims, we prioritize minimizing false negatives (predicting 0 when the actual outcome is 1), even at the cost of generating more false positives.
 
