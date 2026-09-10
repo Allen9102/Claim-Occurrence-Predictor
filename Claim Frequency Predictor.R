@@ -1,4 +1,4 @@
-## packages
+## Packages
 install.packages('randomForest')
 install.packages('rpart.plot')
 install.packages('caret')
@@ -17,98 +17,96 @@ library(rpart)
 library(rpart.plot)
 
 ## EDA
-data <- read.csv("C:/Users/USER/Downloads/train.csv") # 依實際路徑調整
+data <- read.csv("C:/Users/USER/Downloads/train.csv") # Adjust file path if needed
 str(data)
 names(data)
 sum(is.na(data))
-data <- data %>% select(-policy_id) # Remove irrelevant column (policy_id)
+data <- data %>% select(-policy_id) # Remove irrelevant identifier
 data$is_claim <- factor(data$is_claim, levels = c(0, 1))
 table(data$is_claim)
 prop.table(table(data$is_claim))
 
-## Step 4：資料切分（80%：20%）
-# One-hot encoding，並保留目標變數 is_claim
+## Stratified Data Preparation
+# One-hot encode categorical variables while preserving the target variable
 dummy_model <- dummyVars(~ ., data = data, fullRank = TRUE)
 data_processed <- predict(dummy_model, newdata = data) %>%
   as.data.frame() %>%
-  select(-starts_with("is_claim")) %>% # 移除 one-hot 之後的 is_claim
-  mutate(is_claim = data$is_claim) %>% # data_processed 的 is_claim 是正常的
+  select(-starts_with("is_claim")) %>% # Remove one-hot encoded target columns
+  mutate(is_claim = data$is_claim) %>% # Restore the original target variable
   setNames(make.names(names(.)))
 
-# 資料切分
+# Train-test split
 set.seed(123)
 train_index <- createDataPartition(data_processed$is_claim, p = 0.8, list = FALSE)
 train_raw <- data_processed[train_index, ]
 test_raw  <- data_processed[-train_index, ]
-test_data <- select(test_raw, -is_claim) # 將訓練資料屏蔽 is_claim 資訊
-test_label <- test_raw$is_claim # test_raw 的 is_claim 資料
+test_data <- select(test_raw, -is_claim) # Remove target variable from test features
+test_label <- test_raw$is_claim # Store test labels separately
 
-# Step 5：SMOTE 平衡樣本
+# Address class imbalance with SMOTE
 x_train <- select(train_raw, -is_claim)
 y_train <- as.numeric(train_raw$is_claim) - 1
 
-# SMOTE 本來就會多一欄"class"出來
 set.seed(123)
 train_balanced <- SMOTE(x_train, y_train, K = 5, dup_size = 7)$data %>%
   mutate(is_claim = as.factor(class)) %>%
-  select(-class)
+  select(-class) # Remove the temporary class column created by SMOTE
 
-# 檢查平衡後類別分布
 table(train_balanced$is_claim)
 prop.table(table(train_balanced$is_claim))
 
 ### Logistic Regression
-## Step 1：訓練 logistic regression 模型
+## Step 1: Train the logistic regression model
 set.seed(123)
 logistic_model <- glm(is_claim ~ ., 
                       family = binomial(link = "logit"), 
                       data = train_balanced)
 
-## Step 2：提取所有變數的 p-value
+## Step 2: Extract p-values
 summary_model <- summary(logistic_model)
 coefficients_table <- as.data.frame(summary_model$coefficients)
 
-# 提取變數名稱和對應的 p-value
+# Extract variable names and corresponding p-values
 results <- data.frame(
-  variable = rownames(coefficients_table)[-1], # 排除截距項
+  variable = rownames(coefficients_table)[-1], # Exclude the intercept
   p_value = coefficients_table[-1, "Pr(>|z|)"],
   stringsAsFactors = FALSE
 )
 
-## Step 3：查看 p-value < 0.05 的變數
+## Step 3: Identify significant variables
 significant_results <- subset(results, p_value < 0.05)
-print("p-value < 0.05 的顯著變數:"); print(significant_results)
+print("Significant variables (p < 0.05):"); print(significant_results)
 
-## Step 4：預測與評估
-# 預測 test 資料的機率，此次使用的門檻值為 0.5
+## Step 4: Prediction and evaluation
+# Predict probabilities on the test set using a threshold of 0.5
 pred_prob_log <- predict(logistic_model, newdata = test_data, type = "response")
 pred_label_log <- ifelse(pred_prob_log >= 0.5, 1, 0)
 
-# 評估指標
+# Evaluation metrics
 f1_log <- F1_Score(y_pred = pred_label_log, y_true = test_label, positive = "1")
 recall_log <- Recall(y_pred = pred_label_log, y_true = test_label, positive = "1")
-cat("樣本外 F1 Score: ", round(f1_log, 4), "\n")
-cat("樣本外 Recall: ", round(recall_log, 4), "\n")
+cat("Out-of-sample F1 Score: ", round(f1_log, 4), "\n")
+cat("Out-of-sample Recall: ", round(recall_log, 4), "\n")
 
-## Step 5：製作 Recall vs Threshold 圖 
+## Step 5: Plot Recall vs. Threshold
 thresholds <- seq(0.1, 0.9, by = 0.01)
 recall_scores_log <- sapply(thresholds, function(thresh) {
   pred_label_log <- ifelse(pred_prob_log >= thresh, 1, 0)
   Recall(y_true = test_label, y_pred = pred_label_log, positive = "1")
 })
 
-best_thresh_log <- thresholds[which.max(recall_scores_log)] # 尋找最佳 recall 下，threshold 會是多少
+best_thresh_log <- thresholds[which.max(recall_scores_log)] # Find the threshold with the highest recall
 best_recall_log <- max(na.omit(recall_scores_log))
 
-# data.frame 在做的時候不能省略 na，因為這樣會跟 0.1 ~ 0.9 的個數不一樣
+# Keep NA values until after creating the data frame to preserve row alignment
 df_plot_log <- data.frame(Threshold = thresholds, Recall = recall_scores_log)
 df_plot_log <- na.omit(df_plot_log)
 
-threshrold_sum_log <- sum(na.omit(recall_scores_log) == 1) # 有可能 recall score = 1 的有很多個
-thresh_log <- ifelse(threshrold_sum_log < 1, 1, threshrold_sum_log) # for 參照位置使用
-maxthresh_log <- thresh_log * 0.01 + 0.1 - 0.01 # 找到 recall = 1 的最大門檻
+threshrold_sum_log <- sum(na.omit(recall_scores_log) == 1) # Count thresholds with perfect recall
+thresh_log <- ifelse(threshrold_sum_log < 1, 1, threshrold_sum_log) # Set the reference index
+maxthresh_log <- thresh_log * 0.01 + 0.1 - 0.01 # Find the highest threshold with perfect recall
 
-# 做圖
+# Plot
 ggplot(df_plot_log, aes(x = Threshold, y = Recall)) +
   geom_line(color = "blue", linewidth = 1) +
   geom_vline(xintercept = thresholds[thresh_log], linetype = "dashed", color = "red") +
@@ -124,7 +122,7 @@ ggplot(df_plot_log, aes(x = Threshold, y = Recall)) +
            label = paste0("Recall @ 0.5 = ", round(recall_scores_log[41], 4)),
            vjust = -1, hjust = 1, color = "darkgreen")
 
-## Step 6: 畫混淆矩陣
+## Step 6: Plot confusion matrix
 conf_mat_log <- table(Predicted = pred_label_log, Actual = test_label)
 conf_df_log <- as.data.frame(conf_mat_log)
 names(conf_df_log) <- c("Predicted", "Actual", "Freq")
@@ -138,32 +136,32 @@ ggplot(conf_df_log, aes(x = Actual, y = Predicted, fill = Freq)) +
        y = "Predicted Label") +
   theme_minimal()
 
-### XGboost
-## Step 1：Dummy encoding for XGboost
+### XGBoost
+## Step 1: Prepare data for XGBoost
 train_matrix <- sparse.model.matrix(is_claim ~ . -1, data = train_raw)
 test_matrix  <- sparse.model.matrix(is_claim ~ . -1, data = test_raw)
 
-## Step 2：建立 DMatrix 格式 for XGboost
+## Step 2: Create XGBoost DMatrix objects
 dtrain <- xgb.DMatrix(data = train_matrix, label = as.numeric(train_raw$is_claim) - 1)
 dtest  <- xgb.DMatrix(data = test_matrix, label = as.numeric(test_raw$is_claim) - 1)
 
-## Step 3：交叉驗證（k-fold 樣本內驗證）
-# 轉為 caret 格式：將 label 合併進 feature matrix
+## Step 3: Cross-validation and hyperparameter tuning
+# Convert the training data to caret format by adding the target variable
 train_df <- as.data.frame(as.matrix(train_matrix))
 train_df$is_claim <- factor(train_raw$is_claim, levels = c(0, 1), 
-                            labels = c("No", "Yes")) # 沒有labels，就跑不了
+                            labels = c("No", "Yes")) # Required by caret
 
-# 設定交叉驗證參數
+# Set cross-validation parameters
 ctrl <- trainControl(
-  method = "cv", # Cross Validation
-  number = 5, # 代表有5-fold
-  classProbs = TRUE, # 回傳機率值（例如：預測為「1」的機率）。
-  summaryFunction = prSummary, # 指定模型評估的指標，之後才能用 Recall 優化
-  verboseIter = TRUE, # 可讓使用者即時看到訓練過程
-  allowParallel = TRUE # 平行運算加快速度
+  method = "cv", # Use cross-validation
+  number = 5, # 5-fold cross-validation
+  classProbs = TRUE, # Return class probabilities
+  summaryFunction = prSummary, # Use PR-based performance metrics
+  verboseIter = TRUE, # Display training progress
+  allowParallel = TRUE # Enable parallel processing
 )
 
-# 調參
+# Define the hyperparameter grid
 grid <- expand.grid(
   nrounds = 100,
   max_depth = c(3, 4, 5),
@@ -173,7 +171,7 @@ grid <- expand.grid(
   min_child_weight = 1,
   subsample = 0.6)
 
-# 建立模型（樣本內交叉驗證）
+# Train and tune the model using cross-validation
 set.seed(123)
 xgb_cv_model <- train(
   is_claim ~ .,
@@ -183,14 +181,14 @@ xgb_cv_model <- train(
   tuneGrid = grid,
   metric = "Recall")
 
-## Step 4：設定參數與訓練模型
-# 計算 scale_pos_weight，告知模型類別的比例
+## Step 4: Set parameters and train the final model
+# Calculate the class imbalance ratio
 ratio <- sum(train_raw$is_claim == 0) / sum(train_raw$is_claim == 1)
 
-# 最佳參數
+# Get the best hyperparameters
 best_params <- xgb_cv_model$bestTune
 
-# 訓練用的參數
+# Set XGBoost training parameters
 params <- list(
   objective = "binary:logistic",
   eval_metric = "aucpr",
@@ -203,7 +201,7 @@ params <- list(
   scale_pos_weight = ratio
 )
 
-# 訓練實際要用到的模型
+# Train the final XGBoost model
 set.seed(123)
 xgb_model <- xgb.train(
   params = params,
@@ -214,36 +212,36 @@ xgb_model <- xgb.train(
   verbose = 1
 )
 
-## Step 5：預測與評估
-# 預測 test 資料的機率，此次使用的門檻值為 0.5
+## Step 5: Prediction and evaluation
+# Predict probabilities on the test set using a threshold of 0.5
 pred_prob_xg <- predict(xgb_model, newdata = dtest,
                         iteration_range = c(0, xgb_model$best_iteration))
 pred_label_xg <- ifelse(pred_prob_xg >= 0.5, 1, 0)
 
-# 評估指標
+# Evaluation metrics
 f1_xg <- F1_Score(y_pred = pred_label_xg, y_true = test_label, positive = "1")
 recall_xg <- Recall(y_pred = pred_label_xg, y_true = test_label, positive = "1")
-cat("樣本外 F1 Score: ", round(f1_xg, 4), "\n")
-cat("樣本外 Recall: ", round(recall_xg, 4), "\n")
+cat("Out-of-sample F1 Score: ", round(f1_xg, 4), "\n")
+cat("Out-of-sample Recall: ", round(recall_xg, 4), "\n")
 
-## Step 6：製作 Recall vs Threshold 圖 
+## Step 6: Plot Recall vs. Threshold
 recall_scores_xg <- sapply(thresholds, function(thresh) {
   pred_label_xg <- ifelse(pred_prob_xg >= thresh, 1, 0)
   Recall(y_true = test_label, y_pred = pred_label_xg, positive = "1")
 })
 
-best_thresh_xg <- thresholds[which.max(recall_scores_xg)] # 尋找最佳 recall 下，threshold 會是多少
+best_thresh_xg <- thresholds[which.max(recall_scores_xg)] # Find the threshold with the highest recall
 best_recall_xg <- max(na.omit(recall_scores_xg))
 
-# data.frame 在做的時候不能省略 na，因為這樣會跟 0.1 ~ 0.9 的個數不一樣
+# Keep NA values until after creating the data frame to preserve row alignment
 df_plot_xg <- data.frame(Threshold = thresholds, Recall = recall_scores_xg)
 df_plot_xg <- na.omit(df_plot_xg)
 
-threshrold_sum_xg <- sum(na.omit(recall_scores_xg) == 1) # 有可能 recall score = 1 的有很多個
-thresh_xg <- ifelse(threshrold_sum_xg < 1, 1, threshrold_sum_xg) # for 參照位置使用
-maxthresh_xg <- thresh_xg * 0.01 + 0.1 - 0.01 # 找到 recall = 1 的最大門檻
+threshrold_sum_xg <- sum(na.omit(recall_scores_xg) == 1) # Count thresholds with perfect recall
+thresh_xg <- ifelse(threshrold_sum_xg < 1, 1, threshrold_sum_xg) # Set the reference index
+maxthresh_xg <- thresh_xg * 0.01 + 0.1 - 0.01 # Find the highest threshold with perfect recall
 
-# 做圖
+# Plot
 ggplot(df_plot_xg, aes(x = Threshold, y = Recall)) +
   geom_line(color = "blue", linewidth = 1) +
   geom_vline(xintercept = thresholds[thresh_xg], linetype = "dashed", color = "red") +
@@ -259,7 +257,7 @@ ggplot(df_plot_xg, aes(x = Threshold, y = Recall)) +
            label = paste0("Recall @ 0.5 = ", round(recall_scores_xg[41], 4)),
            vjust = -1, hjust = 1, color = "darkgreen")
 
-## Step 7：畫混淆矩陣
+## Step 7: Plot confusion matrix
 conf_mat_xg <- table(Predicted = pred_label_xg, Actual = test_label)
 conf_df_xg <- as.data.frame(conf_mat_xg)
 names(conf_df_xg) <- c("Predicted", "Actual", "Freq")
@@ -273,38 +271,38 @@ ggplot(conf_df_xg, aes(x = Actual, y = Predicted, fill = Freq)) +
        y = "Predicted Label") +
   theme_minimal()
 
-## Step 8：畫 PR curve
+## Step 8: Plot PR curve
 pr_xg <- pr.curve(scores.class0 = pred_prob_xg[test_label == 1],
                   scores.class1 = pred_prob_xg[test_label == 0],
                   curve = TRUE)
 plot(pr_xg)
 
 ### Decision Tree
-## Step 1：取前10重要變數
+## Step 1: Select the top 10 important variables
 decision_tree_model <- rpart(is_claim ~ ., data = data_processed, method = "class",
                              control = rpart.control(minsplit = 2, cp = 0))
 importance <- sort(decision_tree_model$variable.importance, decreasing = TRUE)
 top10 <- names(importance)[1:10]
 selected_data <- data_processed[, c("is_claim", top10)]
 
-## Step 2：決策樹建模與修剪
-# 訓練模型（以前10重要特徵為基底）
+## Step 2: Train and prune the decision tree
+# Train the initial tree
 set.seed(123)
 decision_tree_model <- rpart(is_claim ~ ., data = train_balanced,
                              method = "class", 
                              control = rpart.control(minsplit = 2, cp = 0))
-# 有把train_balanced_DT改成無DT無DT
-# 修剪樹枝並優化
+
+# Inspect the complexity parameter table
 plotcp(decision_tree_model)
 
-# 取得 cp table
+# Extract the cp table
 cp_table <- printcp(decision_tree_model)
 
-# 最小 xerror 及其標準誤
+# Find the minimum cross-validation error and its standard error
 min_xerror <- min(cp_table[, "xerror"])
 min_xerror_se <- cp_table[which.min(cp_table[, "xerror"]), "xstd"]
 
-# 1-SE Rule：選擇 xerror <= min_xerror + xstd 最小的 cp
+# Apply the 1-SE rule
 one_se_threshold <- min_xerror + min_xerror_se
 cp_candidates <- cp_table[cp_table[, "xerror"] <= one_se_threshold, ]
 best_cp_1se <- cp_candidates[which.min(cp_candidates[, "nsplit"]), "CP"]
@@ -312,25 +310,25 @@ cat("Best cp (1-SE Rule):", best_cp_1se, "\n")
 
 decision_tree_model <- prune(decision_tree_model, cp = best_cp_1se)
 
-## Step 3：預測與評估
+## Step 3: Prediction and evaluation
 test_data_DT <- select(test_raw, -is_claim)
 true_label_DT <- factor(test_raw$is_claim, levels = c(0, 1))
 pred_label_DT <- predict(decision_tree_model, newdata = test_data_DT,
                          type = "class")
 
-# 評估結果
+# Evaluation metrics
 f1_DT <- F1_Score(y_pred = pred_label_DT, y_true = true_label_DT, positive = "1")
 recall_DT <- Recall(y_pred = pred_label_DT, y_true = true_label_DT, positive = "1")
 
-cat("樣本外 F1 Score: ", round(f1_DT, 4), "\n")
-cat("樣本外 Recall: ", round(recall_DT, 4), "\n")
+cat("Out-of-sample F1 Score: ", round(f1_DT, 4), "\n")
+cat("Out-of-sample Recall: ", round(recall_DT, 4), "\n")
 
-## Step 4：畫混淆矩陣
+## Step 4: Plot confusion matrix
 conf_mat_DT <- table(Predicted = pred_label_DT, Actual = true_label_DT)
 conf_df_DT <- as.data.frame(conf_mat_DT)
 names(conf_df_DT) <- c("Predicted", "Actual", "Freq")
 
-# 作圖
+# Plot
 ggplot(conf_df_DT, aes(x = Actual, y = Predicted, fill = Freq)) +
   geom_tile(color = "white") +
   geom_text(aes(label = Freq), size = 6) +
@@ -340,8 +338,8 @@ ggplot(conf_df_DT, aes(x = Actual, y = Predicted, fill = Freq)) +
        y = "Predicted Label") +
   theme_minimal() 
 
-## Step 5：畫PR curve
-# PR Curve（使用類別 1 的預測機率）
+## Step 5: Plot PR curve
+# Plot the PR curve using predicted probabilities
 pred_prob_DT <- predict(decision_tree_model, newdata = test_data_DT,
                         type = "prob")[, 2]
 pr <- pr.curve(scores.class0 = pred_prob_DT[true_label_DT == 1],
@@ -350,7 +348,7 @@ pr <- pr.curve(scores.class0 = pred_prob_DT[true_label_DT == 1],
 plot(pr)
 
 ### Random Forest
-## Step 1：訓練Random Forest模型
+## Step 1: Train the Random Forest model
 set.seed(123)
 random_forest_model <- randomForest(
   is_claim ~ ., 
@@ -361,29 +359,29 @@ random_forest_model <- randomForest(
   importance = TRUE
 )
 
-## Step 2：樣本外模型評估
-# 預測測試集
+## Step 2: Evaluate the model on the test set
+# Generate predictions
 pred_prob_rf <- predict(random_forest_model, newdata = test_data)
 pred_prob_rf <- factor(pred_prob_rf, levels = levels(test_label))
 
-# 混淆矩陣（測試集）
+# Compute the confusion matrix
 conf_mat_rf <- confusionMatrix(pred_prob_rf, test_label, positive = "1")
 print(conf_mat_rf)
 
-# recall 與 F1-score（測試集）
+# Extract Recall and F1-score
 recall_rf   <- conf_mat_rf$byClass["Recall"]
 f1_rf      <- conf_mat_rf$byClass["F1"]
 
-## Step 3：變數重要性
+## Step 3: Variable importance
 varImpPlot(random_forest_model)
 
-## Step 4：比較樣本外及樣本內F1 Score, Recall, 以及 MSE
-cat("樣本外 F1 Score: ", round(f1_rf, 4), "\n")
-cat("樣本外 Recall: ", round(recall_rf, 4), "\n")
+## Step 4: Report out-of-sample performance
+cat("Out-of-sample F1 Score: ", round(f1_rf, 4), "\n")
+cat("Out-of-sample Recall: ", round(recall_rf, 4), "\n")
 
-## Step 5：混淆矩陣表格
+## Step 5: Plot confusion matrix
 
-# 作圖
+# Plot
 conf_df_rf <- as.data.frame(conf_mat_rf$table)
 names(conf_df_rf) <- c("Predicted", "Actual", "Freq")
 
@@ -396,24 +394,23 @@ ggplot(conf_df_rf, aes(x = Actual, y = Predicted, fill = Freq)) +
        y = "Predicted Label") +
   theme_minimal()
 
-## Step 6：畫 PR curve
-# 取得機率預測值
+## Step 6: Plot PR curve
+# Obtain predicted probabilities
 pred_prob <- predict(random_forest_model, newdata = test_data, type = "prob")[,2]
 
-# 計算 PR 曲線（正類別為 1）
+# Compute the PR curve for the positive class
 pr_rf <- pr.curve(scores.class0 = pred_prob[test_label == 1],
                   scores.class1 = pred_prob[test_label == 0],
                   curve = TRUE)
 plot(pr_rf)
 
-### 統整
-# 建立結果資料框
+### Summary
+# Create a results table
 result_table <- data.frame(
   Model = c("Logistic Regression","XGBoost", "Decision Tree","Random Forest"),
   F1_Score = c(round(f1_log, 4),round(f1_xg, 4), round(f1_DT, 4),round(f1_rf, 4)),
   Recall = c(round(recall_log, 4),round(recall_xg, 4), round(recall_DT, 4),round(recall_rf, 4))
 )
 
-# 顯示結果
+# Display the results
 print(result_table)
-
