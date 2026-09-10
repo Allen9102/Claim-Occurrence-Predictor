@@ -66,7 +66,8 @@ The selected hyperparameters were then used to train the final XGBoost model usi
 
 For the Decision Tree, cost-complexity pruning was performed using the **1-SE rule** based on cross-validation error.
 
-![Decision Tree Cost-Complexity Plot](images/decision_tree_cp.png)
+<img width="1340" height="857" alt="決策樹" src="https://github.com/user-attachments/assets/cc28c4d2-b131-4a85-91c4-5510386221be" />
+
 
 ### 6. Classification Threshold Analysis
 
@@ -83,6 +84,10 @@ Because the claim class is highly imbalanced, we examined how different threshol
 For Logistic Regression and XGBoost, thresholds from 0.10 to 0.90 were evaluated.
 
 For XGBoost, Recall reached 1.00 at thresholds around 0.10–0.16. However, maximizing Recall alone can increase false positives and does not necessarily maximize F1 Score.
+
+
+<img width="1375" height="715" alt="xgboost-threshold" src="https://github.com/user-attachments/assets/3e4f84c6-dd76-4ef6-a3be-1f734f25fd5a" />
+
 
 This analysis illustrates the trade-off between identifying more actual claims and maintaining overall classification performance.
 
@@ -119,7 +124,7 @@ Additional experiments were conducted to examine how classification thresholds a
 |---|---| ---:|---:|
 | XGBoost | threshold = 0.45 | **0.8371** | 0.1502 |
 | XGBoost | threshold = 0.50 | 0.7076 | 0.1626 |
-| Decision Tree | class weight = 1:1 | 0.5648 | **0.1628** |
+| Random Forest | class weight = 1:1 | 0.5648 | **0.1628** |
 | Random Forest | class weight = 1:1.5 | 0.7597 | 0.1479 |
 
 For XGBoost, lowering the threshold from 0.50 to 0.45 increased Recall from 0.7076 to 0.8371, but reduced F1 Score from 0.1626 to 0.1502.
@@ -131,6 +136,9 @@ These results demonstrate the trade-off between improving claim detection and co
 ### Confusion Matrix
 
 Confusion matrices were used to examine the model's True Positives, True Negatives, False Positives, and False Negatives.
+
+<img width="1471" height="738" alt="XGBoost at 05" src="https://github.com/user-attachments/assets/69061038-8361-4e30-86f3-ccdce2a1ef8c" />
+
 
 ### Precision-Recall Curves
 
