@@ -159,42 +159,16 @@ Because the primary objective is to identify potential claims, we prioritize min
 
 ### Precision-Recall Curves
 
-Precision-Recall curves were used to further evaluate model performance under the imbalanced classification setting.
+Precision-Recall curves were used to further evaluate model performance under the imbalanced classification setting. Although graphs are not shown on GitHub, the code can still work
 
-## Key Takeaways
+## Reflection
 
-This project provided hands-on experience with:
+- **Improve threshold selection:** The classification threshold was evaluated mainly based on Recall. A more systematic approach could consider the trade-off between Recall, F1 Score, and false-positive costs when selecting the threshold.
 
-- Binary classification for insurance claims
-- Exploratory data analysis and data preprocessing
-- One-hot encoding of categorical variables
-- Stratified train-test splitting
-- Class imbalance and SMOTE
-- Logistic Regression
-- Decision Trees and cost-complexity pruning
-- Random Forest
-- XGBoost
-- 5-fold cross-validation
-- Hyperparameter tuning
-- Classification threshold analysis
-- Model evaluation using Recall and F1 Score
-- Precision-Recall curve analysis
-- Model comparison
+- **Use a separate validation set for model tuning:** The current analysis uses the test set when examining classification thresholds and XGBoost early stopping. Using a separate validation set would help prevent information from the test set from influencing model development.
 
-The analysis showed that different evaluation objectives can lead to different preferred models. XGBoost achieved the highest F1 Score, while Random Forest achieved the highest Recall under the final reported setting.
+- **Improve hyperparameter tuning:** The XGBoost grid only varies `max_depth`, while most other hyperparameters are fixed. A broader search over parameters such as learning rate, number of boosting rounds, subsampling, and tree depth could potentially improve model performance.
 
-## Packages and Libraries
+- **Explore alternative methods for class imbalance:** SMOTE was used to address the imbalanced target variable. Future work could compare SMOTE with other approaches, such as class weighting or other resampling techniques, to determine which is more effective for this dataset.
 
-The project uses the following R packages:
-
-- **randomForest** — Random Forest classification and variable importance analysis
-- **rpart** — Decision Tree modeling
-- **rpart.plot** — Decision Tree visualization
-- **xgboost** — XGBoost modeling
-- **caret** — Stratified data splitting, cross-validation, and hyperparameter tuning
-- **smotefamily** — SMOTE for handling class imbalance
-- **MLmetrics** — F1 Score and Recall evaluation
-- **PRROC** — Precision-Recall curve analysis
-- **Matrix** — Sparse matrix representation
-- **ggplot2** — Data visualization
-- **dplyr** — Data manipulation
+- **Improve model interpretability:** The project compares several classification models, but further analysis of feature importance and model explanations could help identify which policyholder characteristics are most associated with claim occurrence.
