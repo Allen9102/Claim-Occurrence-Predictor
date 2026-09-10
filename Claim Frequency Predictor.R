@@ -1,33 +1,30 @@
-### 共用套件載入與資料前處理
-## Step 1：載入所有所需套件
-# 資料處理套件
+## packages
 install.packages('randomForest')
 install.packages('rpart.plot')
-library(caret) #用於分層抽樣與訓練 XGboost
-library(Matrix) # 建立稀疏矩陣供 XGboost 使用
-library(MLmetrics) # 機器學習評估指標
+install.packages('caret')
+install.packages('ggplot2')
+install.packages('dplyr')
+library(caret)
+library(Matrix)
+library(MLmetrics)
 library(smotefamily)
 library(ggplot2)
 library(dplyr)
 library(PRROC)
-
-# 機器學習套件
 library(xgboost)
 library(randomForest)
 library(rpart)
 library(rpart.plot)
 
-## Step 2：讀取資料與基本處理
+## EDA
 data <- read.csv("C:/Users/USER/Downloads/train.csv") # 依實際路徑調整
 str(data)
 names(data)
 sum(is.na(data))
-data <- data %>% select(-policy_id) # 移除無關(policy_id)欄位
-data$is_claim <- factor(data$is_claim, levels = c(0, 1)) # 將 is_claim 轉為類別變數
-
-## Step 3：資料結構檢查與類別分佈觀察
-table(data$is_claim) # 查看 is_claim 的分佈
-prop.table(table(data$is_claim)) # 查看 is_claim 的比例
+data <- data %>% select(-policy_id) # Remove irrelevant column (policy_id)
+data$is_claim <- factor(data$is_claim, levels = c(0, 1))
+table(data$is_claim)
+prop.table(table(data$is_claim))
 
 ## Step 4：資料切分（80%：20%）
 # One-hot encoding，並保留目標變數 is_claim
