@@ -1,74 +1,36 @@
-# Claim-Frequency-Predictor
+# Claim-Occurrence-Predictor
 
-An auto insurance claim frequency predictor using machine learning.
+An auto insurance claim prediction project using machine learning.
 
 A team project that predicts whether an auto insurance policyholder will file a claim by comparing multiple classification models on structured policyholder data.
 
-## Packages and Libraries
-
-The project uses the following R packages:
-
-- **randomForest** — Random Forest classification
-- **rpart** — Decision Tree modeling
-- **rpart.plot** — Decision Tree visualization
-- **xgboost** — XGBoost modeling
-- **caret** — Stratified data splitting, cross-validation, and hyperparameter tuning
-- **smotefamily** — SMOTE for handling class imbalance
-- **MLmetrics** — F1 Score and Recall evaluation
-- **PRROC** — Precision-Recall curve analysis
-- **Matrix** — Sparse matrix representation
-- **ggplot2** — Data visualization
-- **dplyr** — Data manipulation
-
 ## Project Structure
-
-```text
-Claim-Frequency-Predictor/
+Claim-Occurrence-Predictor/
 │
 ├── README.md
 ├── [R script]
-├── [Dataset]
-└── [Figures]
-````
 
-## Key Takeaways
-
-This project provided hands-on experience with:
-
-* Binary classification for insurance claims
-* Data preprocessing and one-hot encoding
-* Stratified train-test splitting
-* Class imbalance and SMOTE
-* Logistic Regression
-* Decision Trees
-* Random Forest
-* XGBoost
-* Cross-validation and hyperparameter tuning
-* Classification threshold analysis
-* Model evaluation using Recall, F1 Score, and PR curves
-
-## Team Project
-
-This was completed as a team project, with responsibilities divided across data processing, modeling, visualization, and model evaluation.
-
+Because our data is classified, I decided not to upload our dataset in case I disclose something sensitive.
 
 ## Methodology
 
 ### 1. Exploratory Data Analysis
 
 The dataset was first examined for:
+
 - Data structure and variable types
 - Variable names
 - Missing values
 - Class distribution of the target variable
 
-The `policy_id` identifier was removed as it does not provide predictive information.
+The `policy_id` identifier was removed because it does not provide predictive information.
 
 ### 2. Data Preprocessing
 
 Categorical variables were transformed using one-hot encoding.
 
 The dataset was then split into:
+
 - **80% training data**
 - **20% test data**
 
@@ -89,7 +51,9 @@ Four classification models were trained and compared:
 - Decision Tree
 - Random Forest
 
-### 5. XGBoost Cross-Validation and Tuning
+Logistic Regression was used as an interpretable baseline, while tree-based methods were used to capture potentially nonlinear relationships.
+
+### 5. Cross-Validation and Hyperparameter Tuning
 
 For XGBoost, the `caret` framework was used to perform **5-fold cross-validation and hyperparameter tuning**.
 
@@ -97,47 +61,112 @@ A predefined grid of XGBoost hyperparameters was evaluated, with **Recall** used
 
 The selected hyperparameters were then used to train the final XGBoost model using the `xgboost` package.
 
-### 6. Model Evaluation
+For the Decision Tree, cost-complexity pruning was performed using the **1-SE rule** based on cross-validation error.
+
+![Decision Tree Cost-Complexity Plot](images/decision_tree_cp.png)
+
+### 6. Classification Threshold Analysis
+
+The models produce predicted probabilities that must be converted into binary predictions using a classification threshold.
+
+For example, with a threshold of 0.50:
+
+```text
+Predicted probability >= 0.50 → Claim
+Predicted probability < 0.50  → No Claim
+```
+Because the claim class is highly imbalanced, we examined how different thresholds affected Recall.
+
+For Logistic Regression and XGBoost, thresholds from 0.10 to 0.90 were evaluated.
+
+For XGBoost, Recall reached 1.00 at thresholds around 0.10–0.16. However, maximizing Recall alone can increase false positives and does not necessarily maximize F1 Score.
+
+This analysis illustrates the trade-off between identifying more actual claims and maintaining overall classification performance.
+
+### 7. Model Evaluation
 
 Model performance was evaluated on the held-out test set using:
 
-- **Recall**
-- **F1 Score**
-- **Precision-Recall (PR) Curve**
-- **Confusion Matrix**
+- Recall
+- F1 Score
+- Precision-Recall (PR) Curve
+- Confusion Matrix
 
-Because claim prediction is an imbalanced classification problem, Recall was emphasized to measure the model's ability to identify policyholders who actually filed claims.
+Recall was emphasized because the project focuses on identifying policyholders who actually filed claims.
 
-For Logistic Regression and XGBoost, the relationship between the classification threshold and Recall was also examined.
-
-### 7. Model Comparison
+### 8. Model Comparison
 
 The final performance of the four models was summarized and compared using Recall and F1 Score.
 
-<!-- Insert your final comparison table here -->
-
-| Model | F1 Score | Recall |
+| Model | Recall | F1 Score |
 |---|---:|---:|
-| Logistic Regression | 0.1183 | 0.1135 |
-| XGBoost | **0.1648** | 0.6662 |
-| Decision Tree | 0.1064 | 0.0951 |
-| Random Forest | 0.1513 | **0.7276** |
+| Logistic Regression | 0.1135 | 0.1183 |
+| XGBoost | 0.6662 | **0.1648** |
+| Decision Tree | 0.0951 | 0.1064 |
+| Random Forest | **0.7276** | 0.1513 |
+
+XGBoost achieved the highest F1 Score, while Random Forest achieved the highest Recall under the reported final evaluation setting.
 
 ## Results
+### Threshold and Class-Weight Analysis
 
-<!-- Insert your model comparison result or visualization here -->
+Additional experiments were conducted to examine how classification thresholds and class weights affect model performance.
 
-The models were compared based on their out-of-sample performance. The analysis focused on the trade-off between identifying actual claims and maintaining overall classification performance.
+| Model | Setting | Recall | F1 Score |
+|---|---| ---:|---:|
+| XGBoost | threshold = 0.45 | **0.8371** | 0.1502 |
+| XGBoost | threshold = 0.50 | 0.7076 | 0.1626 |
+| Decision Tree | class weight = 1:1 | 0.5648 | **0.1628** |
+| Random Forest | class weight = 1:1.5 | 0.7597 | 0.1479 |
 
-### Suggested Visualizations
+For XGBoost, lowering the threshold from 0.50 to 0.45 increased Recall from 0.7076 to 0.8371, but reduced F1 Score from 0.1626 to 0.1502.
 
-The following visualizations can be included here:
+For Random Forest, increasing the relative weight of the claim class from 1:1 to 1:1.5 increased Recall from 0.5648 to 0.7597, while F1 Score decreased from 0.1628 to 0.1479.
 
-1. **Recall vs. Threshold — Logistic Regression**
-2. **Recall vs. Threshold — XGBoost**
-3. **PR Curve — XGBoost**
-4. **PR Curve — Decision Tree**
-5. **PR Curve — Random Forest**
-6. **Confusion Matrices**
-7. **Model Performance Comparison**
+These results demonstrate the trade-off between improving claim detection and controlling false positives.
 
+### Confusion Matrix
+
+Confusion matrices were used to examine the model's True Positives, True Negatives, False Positives, and False Negatives.
+
+### Precision-Recall Curves
+
+Precision-Recall curves were used to further evaluate model performance under the imbalanced classification setting.
+
+## Key Takeaways
+
+This project provided hands-on experience with:
+
+- Binary classification for insurance claims
+- Exploratory data analysis and data preprocessing
+- One-hot encoding of categorical variables
+- Stratified train-test splitting
+- Class imbalance and SMOTE
+- Logistic Regression
+- Decision Trees and cost-complexity pruning
+- Random Forest
+- XGBoost
+- 5-fold cross-validation
+- Hyperparameter tuning
+- Classification threshold analysis
+- Model evaluation using Recall and F1 Score
+- Precision-Recall curve analysis
+- Model comparison
+
+The analysis showed that different evaluation objectives can lead to different preferred models. XGBoost achieved the highest F1 Score, while Random Forest achieved the highest Recall under the final reported setting.
+
+## Packages and Libraries
+
+The project uses the following R packages:
+
+randomForest — Random Forest classification and variable importance analysis
+rpart — Decision Tree modeling
+rpart.plot — Decision Tree visualization
+xgboost — XGBoost modeling
+caret — Stratified data splitting, cross-validation, and hyperparameter tuning
+smotefamily — SMOTE for handling class imbalance
+MLmetrics — F1 Score and Recall evaluation
+PRROC — Precision-Recall curve analysis
+Matrix — Sparse matrix representation
+ggplot2 — Data visualization
+dplyr — Data manipulation
