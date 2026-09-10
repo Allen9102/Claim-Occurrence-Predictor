@@ -3,17 +3,30 @@
 An auto insurance claim frequency predictor
 A team project to predict auto insurance claim occurrence by comparing machine learning models on structured policyholder data.
 
+## Methodology
+
+
 ## Packages and Libraries
-install.packages('randomForest')
-install.packages('rpart.plot')
-library(caret) # For stratified sampling and training XGboost
-library(Matrix) # Create a sparse matrix for use by XGboost
-library(MLmetrics) # Machine learning evaluation metrics
-library(smotefamily) # Solve class imbalance
-library(ggplot2)
-library(dplyr)
-library(PRROC)
-library(xgboost)
-library(randomForest)
-library(rpart)
-library(rpart.plot)
+
+Packages:
+- randomForest
+- rpart.plot
+- ggplot2
+- dplyr # optional
+- caret # For stratified sampling and training XGboost
+
+Libraries:
+- Matrix # Create a sparse matrix for use by XGboost
+- MLmetrics # Machine learning evaluation metrics
+- smotefamily # Solve class imbalance
+- caret
+- ggplot2
+- dplyr
+- PRROC
+- xgboost
+- randomForest
+- rpart
+- rpart.plot
+
+## Waiting
+
