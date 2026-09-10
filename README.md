@@ -139,6 +139,8 @@ Confusion matrices were used to examine the model's True Positives, True Negativ
 
 <img width="1471" height="738" alt="XGBoost at 05" src="https://github.com/user-attachments/assets/69061038-8361-4e30-86f3-ccdce2a1ef8c" />
 
+
+
 Because this is designed to predict insurance occurrence, we would rather predict 0 as 1 than 1 as 0. In other words, this model adopts a conservative prediction. Our goal is to minimize the bottom-right area in the confusion matrix.
 
 ### Precision-Recall Curves
