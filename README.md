@@ -12,13 +12,13 @@ Packages:
 - randomForest
 - rpart.plot
 - ggplot2
-- dplyr # optional
-- caret # For stratified sampling and training XGboost
+- dplyr(optional)
+- caret: For stratified sampling and training XGboost
 
 Libraries:
-- Matrix # Create a sparse matrix for use by XGboost
-- MLmetrics # Machine learning evaluation metrics
-- smotefamily # Solve class imbalance
+- Matrix: Create a sparse matrix for use by XGboost
+- MLmetrics: Machine learning evaluation metrics
+- smotefamily: Solve class imbalance
 - caret
 - ggplot2
 - dplyr
