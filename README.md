@@ -7,7 +7,7 @@ A team project that predicts whether an auto insurance policyholder will file a 
 ## Project Structure
 Claim-Occurrence-Predictor/
 ├── .gitignore
-├── Claim Occurence Predictor.R
+├── Claim Occurrence Predictor.R
 ├── LICENSE
 └── README.md
 
