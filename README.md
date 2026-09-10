@@ -160,14 +160,14 @@ The analysis showed that different evaluation objectives can lead to different p
 
 The project uses the following R packages:
 
-randomForest — Random Forest classification and variable importance analysis
-rpart — Decision Tree modeling
-rpart.plot — Decision Tree visualization
-xgboost — XGBoost modeling
-caret — Stratified data splitting, cross-validation, and hyperparameter tuning
-smotefamily — SMOTE for handling class imbalance
-MLmetrics — F1 Score and Recall evaluation
-PRROC — Precision-Recall curve analysis
-Matrix — Sparse matrix representation
-ggplot2 — Data visualization
-dplyr — Data manipulation
+- randomForest — Random Forest classification and variable importance analysis
+- rpart — Decision Tree modeling
+- rpart.plot — Decision Tree visualization
+- xgboost — XGBoost modeling
+- caret — Stratified data splitting, cross-validation, and hyperparameter tuning
+- smotefamily — SMOTE for handling class imbalance
+- MLmetrics — F1 Score and Recall evaluation
+- PRROC — Precision-Recall curve analysis
+- Matrix — Sparse matrix representation
+- ggplot2 — Data visualization
+- dplyr — Data manipulation
