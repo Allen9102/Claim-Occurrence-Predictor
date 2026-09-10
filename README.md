@@ -119,9 +119,9 @@ The final performance of the four models was summarized and compared using Recal
 | Model | F1 Score | Recall |
 |---|---:|---:|
 | Logistic Regression | 0.1183 | 0.1135 |
-| XGBoost | 0.1648 | 0.6662 |
+| XGBoost | **0.1648** | 0.6662 |
 | Decision Tree | 0.1064 | 0.0951 |
-| Random Forest | 0.1513 | 0.7276 |
+| Random Forest | 0.1513 | **0.7276** |
 
 ## Results
 
