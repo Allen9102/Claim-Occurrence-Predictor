@@ -5,11 +5,13 @@ An auto insurance claim prediction project using machine learning.
 A team project that predicts whether an auto insurance policyholder will file a claim by comparing multiple classification models on structured policyholder data.
 
 ## Project Structure
+```text
 Claim-Occurrence-Predictor/
 ├── .gitignore
 ├── Claim Occurrence Predictor.R
 ├── LICENSE
 └── README.md
+```
 
 Because our data is classified, I decided not to upload our dataset in case I disclose something sensitive.
 
