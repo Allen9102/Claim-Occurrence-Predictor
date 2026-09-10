@@ -6,9 +6,10 @@ A team project that predicts whether an auto insurance policyholder will file a 
 
 ## Project Structure
 Claim-Occurrence-Predictor/
-│
-├── README.md
-├── [R script]
+├── .gitignore
+├── Claim Occurence Predictor.R
+├── LICENSE
+└── README.md
 
 Because our data is classified, I decided not to upload our dataset in case I disclose something sensitive.
 
