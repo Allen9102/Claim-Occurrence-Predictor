@@ -152,6 +152,10 @@ These results demonstrate the trade-off between improving claim detection and co
 Confusion matrices were used to examine the model's True Positives, True Negatives, False Positives, and False Negatives.
 
 
+<img width="1521" height="763" alt="邏輯斯" src="https://github.com/user-attachments/assets/edf6444e-33c5-4462-b713-f231f43275f2" />
+
+
+
 <img width="1471" height="738" alt="XGBoost Confusion Matrix" src="https://github.com/user-attachments/assets/69061038-8361-4e30-86f3-ccdce2a1ef8c" />
 
 
