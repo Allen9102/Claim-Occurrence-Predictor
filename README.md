@@ -16,8 +16,6 @@ Claim-Occurrence-Predictor/
 └── README.md
 ```
 
-The dataset is not included in this repository to avoid redistributing the source data.
-
 ## Methodology
 
 ### 1. Exploratory Data Analysis
