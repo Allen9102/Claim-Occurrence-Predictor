@@ -315,10 +315,10 @@ grid <- expand.grid(
   nrounds = 100,
   max_depth = c(3, 4, 5),
   eta = 0.1,
-  gamma = 1,
-  colsample_bytree = 0.6,
-  min_child_weight = 1,
-  subsample = 0.6
+  gamma = c(0, 0.5, 1, 2 ),
+  colsample_bytree = (0.6, 0.8),
+  min_child_weight = (1, 3, 5),
+  subsample = (0.6, 0.8, 1)
 )
 
 # I actually tried different kinds of combinations in each parameter; this is just a version, and you can use vectors like c() to design your own project
