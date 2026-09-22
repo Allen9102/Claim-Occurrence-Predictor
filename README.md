@@ -1,13 +1,22 @@
 # Insurance Claim Prediction: Does SMOTE Help?
 
-Predicts whether an auto-insurance policy will file a claim (`is_claim`),
-comparing four models under two class-imbalance strategies — **no
-rebalancing** and **SMOTE oversampling** — on discrimination (ROC-AUC,
-PR-AUC) *and* probability quality (Brier score), with a leakage-conscious
-protocol and bootstrap confidence intervals.
+Predicts whether an auto-insurance policy will file a claim (`is_claim`), comparing four models under two class-imbalance strategies — **no rebalancing** and **SMOTE oversampling** — on discrimination (ROC-AUC, PR-AUC) *and* probability quality (Brier score), with a leakage-conscious protocol and bootstrap confidence intervals.
 
-Public Kaggle "Car Insurance Claim Prediction" dataset: 58,592 policies,
-42 predictors, 6.4% claim rate.
+Public Kaggle "Car Insurance Claim Prediction" dataset: 58,592 policies, 42 predictors, 6.4% claim rate.
+
+## Project structure
+
+```
+.
+├── R/
+│   ├── insurance_claim_smote_comparison.R   # main pipeline: train, tune, evaluate
+│   └── report_extras.R                      # Brier score + calibration plot
+├── figures/                                 # key result figures (used above)
+├── data/
+│   └── train.csv                            # not included; see Data below
+├── claim_occurence_project.pdf              # full write-up
+└── README.md
+```
 
 ## Models
 
@@ -91,20 +100,6 @@ for logistic regression and XGBoost.
 The complete methodology, all bootstrap confidence intervals, per-model
 comparison tables, operating-point tables, variable-importance rankings, and
 limitations are in **[`claim_occurence_project.pdf`](claim_occurence_project.pdf)**.
-
-## Project structure
-
-```
-.
-├── R/
-│   ├── insurance_claim_smote_comparison.R   # main pipeline: train, tune, evaluate
-│   └── report_extras.R                      # Brier score + calibration plot
-├── figures/                                 # key result figures (used above)
-├── data/
-│   └── train.csv                            # not included; see Data below
-├── claim_occurence_project.pdf              # full write-up
-└── README.md
-```
 
 ## Requirements
 
