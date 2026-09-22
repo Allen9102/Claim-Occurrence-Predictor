@@ -35,6 +35,7 @@ PR-AUC interval sits above the 0.064 base rate, none very far above it.
 <img width="1584" height="660" alt="fig1_discrimination_calibration" src="https://github.com/user-attachments/assets/15f26317-ede4-416a-bec7-6c08c4617150" />
 
 
+
 | Scenario   | Model               | ROC-AUC | PR-AUC | Brier |
 |------------|---------------------|:-------:|:------:|:-----:|
 | No SMOTE   | Logistic Regression | 0.614   | 0.094  | 0.059 |
@@ -54,6 +55,7 @@ tables are in the [project report](claim_occurence_project.pdf).
 
 
 <img width="1584" height="638" alt="fig4_smote_effect" src="https://github.com/user-attachments/assets/bc27b510-7139-4bf4-b285-61f8f432bf94" />
+
 
 
 | Model               | Δ ROC-AUC     | Δ PR-AUC      | Δ Brier    |
