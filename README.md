@@ -18,6 +18,23 @@ Public Kaggle "Car Insurance Claim Prediction" dataset: 58,592 policies, 42 pred
 └── README.md
 ```
 
+## My Contribution
+
+This started as a four-person course project; the analysis below reflects
+my own follow-up work re-analyzing our original results with a
+leakage-conscious protocol.
+
+- **Model tuning:** Led the tuning of Logistic Regression and XGBoost,
+  including the XGBoost hyperparameter grid search (`nrounds`, `max_depth`,
+  `min_child_weight`) under the 5-fold CV protocol.
+- **Preprocessing:** Contributed to the one-hot encoding step and the SMOTE
+  integration (applying it inside CV training folds only, so it never
+  leaks into a validation fold).
+- **Statistical analysis:** Designed and implemented the
+  bootstrap confidence intervals and paired significance tests comparing
+  models and SMOTE scenarios.
+- **Report writing:** Co-wrote the report with my teammates.
+
 ## Models
 
 - Logistic Regression
