@@ -31,7 +31,9 @@ Public Kaggle "Car Insurance Claim Prediction" dataset: 58,592 policies, 42 pred
 PR-AUC 0.113), but discrimination was modest for every model — every
 PR-AUC interval sits above the 0.064 base rate, none very far above it.
 
-![Discrimination and calibration by model and scenario](figures/fig1_discrimination_calibration.png)
+
+<img width="1584" height="660" alt="fig1_discrimination_calibration" src="https://github.com/user-attachments/assets/15f26317-ede4-416a-bec7-6c08c4617150" />
+
 
 | Scenario   | Model               | ROC-AUC | PR-AUC | Brier |
 |------------|---------------------|:-------:|:------:|:-----:|
@@ -50,7 +52,9 @@ tables are in the [project report](claim_occurence_project.pdf).
 
 ### Does SMOTE help? It depends on the model.
 
-![Effect of SMOTE on ROC-AUC, PR-AUC and Brier score](figures/fig4_smote_effect.png)
+
+<img width="1584" height="638" alt="fig4_smote_effect" src="https://github.com/user-attachments/assets/bc27b510-7139-4bf4-b285-61f8f432bf94" />
+
 
 | Model               | Δ ROC-AUC     | Δ PR-AUC      | Δ Brier    |
 |----------------------|:-------------:|:-------------:|:----------:|
@@ -77,13 +81,13 @@ third. A model fit to that inflated rate learns a claim prior several times
 too high, which shifts predicted probabilities upward without necessarily
 reordering policies — visible directly in the calibration plot below.
 
-![Calibration curves, no SMOTE vs. with SMOTE](figures/fig5_calibration.png)
+<img width="2400" height="1200" alt="calibration" src="https://github.com/user-attachments/assets/1eb47a48-74ec-4567-9179-490d4f2ee490" />
 
 Points on the dashed diagonal mean predicted probability matches the
 observed claim rate. The no-SMOTE curves track the diagonal reasonably well;
 the SMOTE curves sit well below it — systematic overprediction.
 
-![Precision-recall curves by model and scenario](figures/fig2_pr_curves.png)
+<img width="2400" height="1200" alt="PR curve" src="https://github.com/user-attachments/assets/056fbd4f-8d18-42be-81fc-624338bba126" />
 
 ### Bottom line
 
