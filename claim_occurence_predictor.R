@@ -55,7 +55,7 @@ if (length(missing_pkgs) > 0) install.packages(missing_pkgs)
 invisible(lapply(pkgs, library, character.only = T))
 
 ## ---- Configuration ----
-DATA_PATH  <- "/Users/allen/Downloads/Coding & Apps/R/R for DS/project/train.csv"
+DATA_PATH  <- "/Users/.../train.csv"
 SEED       <- 123
 TRAIN_P    <- 0.8                            # train / test split ratio
 CV_FOLDS   <- 5
