@@ -9,7 +9,7 @@ Public Kaggle "Car Insurance Claim Prediction" dataset: 58,592 policies, 42 pred
 ```
 .
 ├── R/
-│   ├── insurance_claim_smote_comparison.R   # main pipeline: train, tune, evaluate
+│   ├── claim_occurence_predictor.R   # main pipeline: train, tune, evaluate
 │   └── report_extras.R                      # Brier score + calibration plot
 ├── figures/                                 # key result figures (used above)
 ├── data/
