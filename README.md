@@ -23,7 +23,7 @@ Public Kaggle "Car Insurance Claim Prediction" dataset: 58,592 policies, 42 pred
 - **Model building:** Executed tuning of XGBoost, including the XGBoost hyperparameter grid search (`nrounds`, `max_depth`, `min_child_weight`) under the 5-fold CV protocol. Built the logistic regression model.
 - **Preprocessing:** Contributed to the one-hot encoding step and the SMOTE integration (applying it inside CV training folds only, so it never leaks into a validation fold).
 - **Statistical analysis:** Designed and implemented bootstrap confidence intervals and paired bootstrap confidence intervals comparing models and SMOTE scenarios.
-- **Visualization:** Designed the visualization of the confusion matrix, calibration, Brier score, and threshold.
+- **Visualization:** Designed the visualization of the confusion matrix, calibration, Brier score, PR curve, and threshold.
 - **Report writing:** Co-wrote the report with my teammates.
 
 ## Models
