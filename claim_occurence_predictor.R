@@ -1,49 +1,3 @@
-## =============================================================================
-##  Insurance Claim Prediction: No SMOTE vs. With SMOTE
-##  Models: Logistic Regression | XGBoost | Decision Tree | Random Forest
-## =============================================================================
-##
-##  WHAT THIS SCRIPT DOES
-##  ----------------------------------------------------------------------------
-##  Trains and compares four binary classifiers that predict whether an
-##  insurance policy will file a claim (target column `is_claim`), once
-##  WITHOUT class-balancing and once WITH SMOTE oversampling, so the two
-##  scenarios can be compared side by side on the same held-out test set.
-##
-##  HOW TO RUN
-##  ----------------------------------------------------------------------------
-##  1. Set DATA_PATH below to the location of your train.csv
-##     (expects one row per policy, a binary `is_claim` column, and a
-##     `policy_id` identifier column that is dropped before modelling).
-##  2. Run the whole script top to bottom (e.g. `Rscript
-##     insurance_claim_smote_comparison.R`, or source it in RStudio).
-##  3. Missing packages are installed automatically on first run.
-##  4. Optional: run report_extras.R afterwards, IN THE SAME R SESSION, for
-##     Brier score and calibration-plot diagnostics (see that file's header).
-##
-##  RUNTIME NOTE
-##  ----------------------------------------------------------------------------
-##  Most of the time goes into the XGBoost grid search in Section 3
-##  (nrow(xgb_grid) x CV_FOLDS x 2 scenarios full model fits). Shrink
-##  `xgb_grid` for a quick smoke-test run before committing to the full grid.
-##
-##  METHODOLOGY / WHY THE WORKFLOW IS SET UP THIS WAY
-##  ----------------------------------------------------------------------------
-##  (identical for both scenarios, only the SMOTE switch differs)
-##    1. Split train / test FIRST  -> the test set is never touched until the end
-##    2. Fit all preprocessing on the training set only
-##    3. Tune with 5-fold CV using the SAME folds for every model;
-##       SMOTE (if on) is applied INSIDE each CV training fold only,
-##       so synthetic rows never leak into a validation fold
-##    4. Choose the classification threshold on out-of-fold training predictions
-##    5. Score the test set exactly once
-##  This avoids the most common sources of data leakage in imbalanced-class
-##  problems: fitting preprocessing/SMOTE before the split, tuning a decision
-##  threshold on the test set, and letting SMOTE-duplicated rows spill into a
-##  validation fold.
-## =============================================================================
-
-
 ## 0. Setup ---------------------------------------------------------------------
 
 pkgs <- c(
@@ -75,15 +29,9 @@ xgb_grid <- expand.grid(
   colsample_bytree = c(0.6),
   min_child_weight = c(1),
   subsample        = c(0.8)
-)                                            # nrow(xgb_grid) combinations x 5 folds (slowest step)
+)                    
 
 tree_grid <- data.frame(cp = c(1e-4, 2e-4, 5e-4, 1e-3, 2e-3, 5e-3, 1e-2))
-
-## Optional: parallel backend (uncomment; remember to call stopCluster(cl) at the end)
-# library(doParallel)
-# cl <- makePSOCKcluster(parallel::detectCores() - 1)
-# registerDoParallel(cl)
-
 
 ## 1. Load Data & Exploratory Analysis ------------------------------------------
 
@@ -229,9 +177,7 @@ wrap_caret <- function(fit) {
 }
 
 ## ---- XGBoost: grid search with CV (SMOTE only inside training folds) ----
-##  Written with xgboost's own API instead of caret's "xgbTree", because caret
-##  (6.0-94) fails with xgboost >= 3.0. Bonus: SMOTE runs once per fold rather
-##  than once per fold x grid row.
+##  Written with xgboost's own API instead of caret's "xgbTree", because caret (6.0-94) fails with xgboost >= 3.0.
 tune_xgboost <- function(use_smote, scenario) {
   sampler <- if (use_smote) make_smote(SMOTE_K, SMOTE_DUP)$func else NULL
   to_dmatrix <- function(x, y = NULL) {
@@ -524,8 +470,7 @@ for (r in results) {
 
 
 ## 5. Logistic Regression: Statistical Significance -----------------------------
-##    Uses the ORIGINAL training data only. SMOTE creates synthetic rows, which
-##    inflates the sample size and makes p-values meaningless.
+##    Uses the ORIGINAL training data only. SMOTE creates synthetic rows, which inflates the sample size and makes p-values meaningless.
 
 sig_data <- cbind(X_train, claim = as.integer(y_train == POS))
 sig_fit  <- glm(claim ~ ., data = sig_data, family = binomial(link = "logit"))
@@ -587,10 +532,6 @@ for (scn in names(results)) {
 
 
 ## 7. Cross-Validation Detail (training set, 5 folds) ---------------------------
-##    PR-AUC does not depend on a threshold. Precision / Recall / F1 use the
-##    threshold chosen on the pooled out-of-fold predictions, so they are mildly
-##    optimistic. Hyperparameters and threshold were both selected on these same
-##    folds (no nested CV), so treat the test-set numbers as the clean ones.
 
 cv_detail <- lapply(results, function(r) {
   setNames(
