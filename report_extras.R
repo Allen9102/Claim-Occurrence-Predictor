@@ -1,38 +1,3 @@
-## =============================================================================
-##  Extras: Brier Score + Calibration Plot
-## =============================================================================
-##
-##  WHAT THIS SCRIPT DOES
-##  ----------------------------------------------------------------------------
-##  Adds probability-quality diagnostics on top of the main comparison:
-##    - Brier score per model/scenario (are the predicted probabilities close
-##      to the actual outcomes, not just good at ranking policies?)
-##    - A calibration plot per scenario (do policies given ~20% predicted risk
-##      actually claim about 20% of the time?)
-##
-##  HOW TO RUN
-##  ----------------------------------------------------------------------------
-##  Run insurance_claim_smote_comparison.R FIRST, then run this file in the
-##  SAME R session. It needs `results`, `summary_tbl`, `X_test`, `y_test`, and
-##  `POS`, all created by that script. Nothing is retrained here -- the
-##  already-fitted models are only asked for predictions again, so this runs
-##  in a few seconds.
-##
-##  HOW TO READ THE OUTPUT
-##  ----------------------------------------------------------------------------
-##  Brier score  = average of (predicted probability - actual 0/1 outcome)^2.
-##                 Lower is better. It judges how good the PROBABILITIES are,
-##                 not just how well policies are ranked.
-##  Calibration  = among policies the model gives ~20%, do ~20% really claim?
-##                 The plot groups test policies by predicted probability and
-##                 compares the average prediction with the actual claim rate.
-##                 Points on the dashed diagonal = well calibrated.
-##  SMOTE tends to push predicted probabilities upward, so SMOTE models often
-##  show worse Brier scores and calibration even when their ranking of
-##  high-risk vs. low-risk policies (PR-AUC) is just as good or better.
-## =============================================================================
-
-
 ## 1. Brier score ---------------------------------------------------------------
 
 y01       <- as.integer(y_test == POS)
