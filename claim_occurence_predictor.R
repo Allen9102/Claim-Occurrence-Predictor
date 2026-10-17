@@ -4,8 +4,11 @@ pkgs <- c(
   "caret", "MLmetrics", "smotefamily", "PRROC", "xgboost",
   "randomForest", "rpart", "ggplot2", "dplyr"
 )
+
 missing_pkgs <- setdiff(pkgs, rownames(installed.packages()))
+
 if (length(missing_pkgs) > 0) install.packages(missing_pkgs)
+
 invisible(lapply(pkgs, library, character.only = T))
 
 ## ---- Configuration ----
@@ -378,6 +381,8 @@ cv_fold_report <- function(model, thr) {
 }
 
 ## ---- Plot helpers ----
+
+### Threshold curves
 plot_threshold_curves <- function(thr_all, summary_tbl, scenario) {
   f_label <- paste0("F", BETA)
   best    <- filter(summary_tbl, Scenario == scenario)
@@ -405,6 +410,7 @@ plot_threshold_curves <- function(thr_all, summary_tbl, scenario) {
           plot.subtitle = element_text(hjust = 0.5))
 }
 
+### Confusion matrix
 plot_confusion <- function(cm_all, scenario) {
   ggplot(filter(cm_all, Scenario == scenario),
          aes(x = Actual, y = Predicted, fill = Freq)) +
@@ -421,6 +427,7 @@ plot_confusion <- function(cm_all, scenario) {
     theme(plot.title = element_text(hjust = 0.5), legend.position = "none")
 }
 
+### PR curve
 plot_pr_curves <- function(pr_all, base_rate) {
   ggplot(pr_all, aes(x = Recall, y = Precision, colour = Model)) +
     geom_line(linewidth = 0.8) +
@@ -435,6 +442,7 @@ plot_pr_curves <- function(pr_all, base_rate) {
           plot.subtitle = element_text(hjust = 0.5))
 }
 
+### A glance of comparison
 plot_comparison <- function(summary_tbl) {
   long <- bind_rows(
     transmute(summary_tbl, Scenario, Model, Metric = "PR-AUC", Value = PR_AUC),
