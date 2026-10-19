@@ -25,7 +25,7 @@ NEG        <- "No"
 
 ## ---- Hyperparameter grids (shrink these for a quick test run) ----
 xgb_grid <- expand.grid(
-  nrounds          = 100,
+  nrounds          = c(100, 200, 300)
   max_depth        = c(3, 4, 5),
   eta              = 0.1,
   gamma            = c(0, 0.5, 1, 2),
