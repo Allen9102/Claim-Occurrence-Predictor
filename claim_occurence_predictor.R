@@ -1,6 +1,5 @@
 ## Claim: Our code was reorganized with the assistance of AI because four team members contributed to the coding. 
-## The underlying logic remains essentially the same, while AI helped standardize variable names, 
-## streamline function calls, and improve the overall code structure.
+## The underlying logic remains essentially the same, while AI helped standardize variable names, streamline function calls, and improve the overall code structure.
 
 ## 0. Setup ---------------------------------------------------------------------
 
