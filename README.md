@@ -13,7 +13,7 @@ Public Kaggle "Car Insurance Claim Prediction" dataset: 58,592 policies, 42 pred
 │   └── brier_and _cali.R              # Brier score + calibration plot
 ├── figures/                           # key result figures (used above)
 ├── data/
-│   └── train.csv                      # not included; see Data below
+│   └── train.csv                      
 ├── claim_occurrence_project.pdf       # full write-up
 └── README.md
 ```
