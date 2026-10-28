@@ -26,6 +26,7 @@ Public Kaggle "Car Insurance Claim Prediction" dataset: 58,592 policies, 42 pred
 - **Preprocessing:** Contributed to the SMOTE implementation and the one-hot encoding step.
 - **Research:** Investigated why SMOTE distorts predicted probabilities, which became Section 5.2 of the report.
 - **Statistical analysis:** Designed and implemented the Brier score, calibration analysis, and paired bootstrap confidence intervals and significance tests reported throughout the paper.
+- **Visualization:** Design confusion matrix.
 - **Report writing:** Co-wrote the report with my teammates.
 
 ## Models
