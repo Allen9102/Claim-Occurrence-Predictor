@@ -110,18 +110,6 @@ The complete methodology, all bootstrap confidence intervals, per-model comparis
 
 Update `DATA_PATH` at the top of `claim_occurrence_predictor.R` to point at your copy of the file.
 
-## Usage
-
-```r
-# 1. Run the main pipeline (trains all four models, both scenarios)
-source("R/claim_occurrence_predictor.R")
-
-# 2. Brier score + calibration plot (reuses the fitted models, no retraining)
-source("R/brier_and_calibration.R")
-```
-
-Most of the runtime goes into the XGBoost grid search. Shrink `xgb_grid` in the Configuration section for a quick smoke-test before committing to a full run.
-
 ## Methodology
 
 The same workflow is applied to both scenarios so the only real difference between them is whether SMOTE is used:
