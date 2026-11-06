@@ -28,14 +28,14 @@ NEG        <- "No"
 
 ## ---- Hyperparameter grids (shrink these for a quick test run) ----
 xgb_grid <- expand.grid(
-  nrounds          = c(100, 200, 300)
+  nrounds          = c(100, 200, 300),
   max_depth        = c(3, 4, 5),
   eta              = 0.1,
-  gamma            = c(0, 0.5, 1, 2),
-  colsample_bytree = c(0.6),
-  min_child_weight = c(1),
-  subsample        = c(0.8)
-)                    
+  gamma            = 1,
+  colsample_bytree = 0.6,
+  min_child_weight = c(1, 5, 10),
+  subsample        = 0.8
+)                   
 
 tree_grid <- data.frame(cp = c(1e-4, 2e-4, 5e-4, 1e-3, 2e-3, 5e-3, 1e-2))
 
