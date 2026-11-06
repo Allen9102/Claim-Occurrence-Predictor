@@ -10,7 +10,7 @@ Public Kaggle "Car Insurance Claim Prediction" dataset: 58,592 policies, 42 pred
 .
 ├── R/
 │   ├── claim_occurrence_predictor.R   # main pipeline: train, tune, evaluate
-│   └── brier_and _cali.R              # Brier score + calibration plot
+│   └── brier_and_cali.R              # Brier score + calibration plot
 ├── figures/                           # key result figures (used above)
 ├── data/
 │   └── train.csv                      
@@ -24,7 +24,7 @@ Public Kaggle "Car Insurance Claim Prediction" dataset: 58,592 policies, 42 pred
 - **Evaluation protocol:** In consultation with my teammates, designed the leakage-conscious evaluation protocol used throughout the study (train/test split before preprocessing, SMOTE confined to CV training folds, thresholds chosen on out-of-fold predictions).
 - **Model building:** Responsible for the logistic regression and XGBoost models, including the XGBoost hyperparameter search under five-fold cross-validation.
 - **Preprocessing:** Contributed to the SMOTE implementation and the one-hot encoding step.
-- **Research:** Investigated why SMOTE distorts predicted probabilities, which became Section 5.2 of the report.
+- **Research:** Investigated why SMOTE may distort predicted probabilities, which became Section 5.2 of the report.
 - **Statistical analysis:** Designed and implemented the Brier score, calibration analysis, and paired bootstrap confidence intervals and significance tests reported throughout the paper.
 - **Visualization:** Design confusion matrix.
 - **Report writing:** Co-wrote the report with my teammates.
@@ -114,9 +114,11 @@ Update `DATA_PATH` at the top of `claim_occurrence_predictor.R` to point at your
 ## Usage
 
 ```r
-# 1. Run the main pipeline (trains all four models, both scenarios) source("R/claim_occurrence_predictor.R")
+# 1. Run the main pipeline (trains all four models, both scenarios)
+source("R/claim_occurrence_predictor.R")
 
-# 2. Brier score + calibration plot (reuses the fitted models, no retraining) source("R/report_extras.R")
+# 2. Brier score + calibration plot (reuses the fitted models, no retraining)
+source("R/brier_and_calibration.R")
 ```
 
 Most of the runtime goes into the XGBoost grid search. Shrink `xgb_grid` in the Configuration section for a quick smoke-test before committing to a full run.
@@ -140,5 +142,8 @@ This avoids the most common leakage pitfalls in imbalanced classification: prepr
 - The random forest and decision tree were tuned over narrower search spaces than XGBoost — the finding that SMOTE helps the random forest may partly reflect a weaker baseline rather than the method itself.
 - No separate validation set or early stopping is used for XGBoost; `nrounds` is chosen by grid search instead.
 - No recalibration (Platt scaling, isotonic regression) was evaluated — see the report's Future Work section.
+- Several selected hyperparameters lie at the edge of their grids, so wider grids might change the results.
+- Six integer-coded vehicle attributes were used as numeric variables rather than one-hot encoded, which imposes a linear effect on the logit and was not tested.
+- Calibration was assessed descriptively with the Brier score and a decile plot, without confidence bands.
 
 See the [full report](claim_occurrence_project.pdf) for the complete limitations discussion.
