@@ -37,21 +37,21 @@ Public Kaggle "Car Insurance Claim Prediction" dataset: 58,592 policies, 42 pred
 
 ## Key results
 
-**XGBoost without SMOTE gave the best discrimination** (ROC-AUC 0.664, PR-AUC 0.113), but discrimination was modest for every model — every PR-AUC interval sits above the 0.064 base rate, none very far above it.
+**XGBoost without SMOTE gave the best discrimination** (ROC-AUC 0.666, PR-AUC 0.114), but discrimination was modest for every model — every PR-AUC interval sits above the 0.064 base rate, none very far above it.
 
 
-<img width="1584" height="660" alt="fig1_discrimination_calibration" src="https://github.com/user-attachments/assets/15f26317-ede4-416a-bec7-6c08c4617150" />
+<img width="2400" height="1200" alt="discrimination_calibration" src="https://github.com/user-attachments/assets/7fa490dd-e5e4-4c2e-8f95-482169af58af" />
 
 
 
 | Scenario   | Model               | ROC-AUC | PR-AUC | Brier |
 |------------|---------------------|:-------:|:------:|:-----:|
 | No SMOTE   | Logistic Regression | 0.614   | 0.094  | 0.059 |
-| No SMOTE   | **XGBoost**          | **0.664** | **0.113** | 0.059 |
+| No SMOTE   | **XGBoost**          | **0.666** | **0.114** | 0.059 |
 | No SMOTE   | Decision Tree        | 0.596   | 0.087  | 0.073 |
 | No SMOTE   | Random Forest        | 0.569   | 0.078  | 0.062 |
 | With SMOTE | Logistic Regression | 0.612   | 0.092  | 0.143 |
-| With SMOTE | XGBoost              | 0.642   | 0.101  | 0.079 |
+| With SMOTE | XGBoost              | 0.647   | 0.101  | 0.071 |
 | With SMOTE | Decision Tree        | 0.607   | 0.090  | 0.067 |
 | With SMOTE | Random Forest        | 0.625   | 0.093  | 0.066 |
 
@@ -60,36 +60,36 @@ No-skill references: ROC-AUC 0.5, PR-AUC 0.064 (test-set claim rate), Brier 0.06
 ### Does SMOTE help? It depends on the model.
 
 
-<img width="1584" height="638" alt="fig4_smote_effect" src="https://github.com/user-attachments/assets/bc27b510-7139-4bf4-b285-61f8f432bf94" />
+<img width="2400" height="1200" alt="smote_effect" src="https://github.com/user-attachments/assets/33ed70db-079e-4b65-ad58-be3a84302f6b" />
 
 
 
 | Model               | Δ ROC-AUC     | Δ PR-AUC      | Δ Brier    |
 |----------------------|:-------------:|:-------------:|:----------:|
-| Logistic Regression  | −0.002 (n.s.) | −0.002 (n.s.) | **+0.083** |
-| XGBoost               | **−0.022**    | **−0.012**    | **+0.021** |
+| Logistic Regression  | −0.002 (n.s.) | **−0.002**    | **+0.083** |
+| XGBoost               | **−0.019**    | **−0.0125**   | **+0.012** |
 | Decision Tree         | +0.011 (n.s.) | +0.003 (n.s.) | **−0.006** |
 | Random Forest         | **+0.056**    | **+0.016**    | **+0.004** |
 
 *(Δ = With SMOTE − No SMOTE; bold = 95% bootstrap CI excludes 0; n.s. = not
 significant)*
 
-- **Logistic regression:** ranking unchanged, but the Brier score nearly tripled (0.059 → 0.143) — SMOTE badly distorts the predicted probabilities.
+- **Logistic regression:** ranking essentially unchanged (the PR-AUC change is statistically detectable but negligible), but the Brier score more than doubled (0.059 → 0.143) — SMOTE badly distorts the predicted probabilities.
 - **XGBoost:** SMOTE made both ranking *and* probability quality worse.
 - **Decision tree:** essentially unchanged; its no-SMOTE Brier score was already inflated by overfit leaf probabilities, so the small improvement isn't really "SMOTE helping calibration."
 - **Random forest:** the only model where SMOTE clearly helped ranking — but its no-SMOTE baseline was also the weakest of the four, so part of the gain may reflect a poorly tuned baseline rather than SMOTE itself.
 
 SMOTE raises the minority share of the training data from ~6% to roughly a third. A model fit to that inflated rate learns a claim prior several times too high, which shifts predicted probabilities upward without necessarily reordering policies — visible directly in the calibration plot below.
 
-<img width="2400" height="1200" alt="calibration" src="https://github.com/user-attachments/assets/1eb47a48-74ec-4567-9179-490d4f2ee490" />
+<img width="2400" height="1200" alt="calibration" src="https://github.com/user-attachments/assets/af85226b-29bc-4696-bb16-b410ba1db1f1" />
 
-Points on the dashed diagonal mean predicted probability matches the observed claim rate. The no-SMOTE curves track the diagonal reasonably well; the SMOTE curves sit well below it — systematic overprediction.
+Points on the dashed diagonal mean predicted probability matches the observed claim rate. The SMOTE curves generally sit below it — systematic overprediction, most strongly for logistic regression. Without SMOTE, logistic regression and XGBoost track the diagonal reasonably well, while the decision tree's top bin (mean predicted probability 0.63, observed claim rate about 0.11) and the flat random-forest curve show clear miscalibration.
 
-<img width="2400" height="1200" alt="PR curve" src="https://github.com/user-attachments/assets/056fbd4f-8d18-42be-81fc-624338bba126" />
+<img width="2400" height="1200" alt="PR curve" src="https://github.com/user-attachments/assets/b1cf3817-d5b6-46d2-8e73-60a716bb807e" />
 
 ### Bottom line
 
-For **ranking** uses (e.g. flagging policies for underwriting review), XGBoost without SMOTE is the best of the four models tested, and SMOTE is not a reliable way to improve ranking — it helped one model, hurt another, and left two unchanged. For **pricing or reserving**, where the probability itself is used, SMOTE should not be used without recalibration (e.g. Platt scaling or isotonic regression): it substantially worsened the Brier score for logistic regression and XGBoost.
+For **ranking** uses (e.g. flagging policies for underwriting review), XGBoost without SMOTE is the best of the four models tested, and SMOTE is not a reliable way to improve ranking — it helped one model, hurt another, and left two essentially unchanged. For **pricing or reserving**, where the probability itself is used, SMOTE should not be used without recalibration (e.g. Platt scaling or isotonic regression): it substantially worsened the Brier score for logistic regression and XGBoost.
 
 ## Full report
 
@@ -98,7 +98,7 @@ The complete methodology, all bootstrap confidence intervals, per-model comparis
 ## Requirements
 
 - R (developed and tested on R 4.5)
-- Packages: `caret`, `MLmetrics`, `smotefamily`, `PRROC`, `xgboost`, `randomForest`, `rpart`, `ggplot2`, `dplyr` — installed automatically on first run if missing.
+- Packages: `caret`, `MLmetrics`, `smotefamily`, `PRROC`, `xgboost`, `randomForest`, `rpart`, `ggplot2`, `dplyr`, `tidyr` — installed automatically on first run if missing.
 
 ## Data
 
