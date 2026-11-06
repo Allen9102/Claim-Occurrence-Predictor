@@ -25,7 +25,7 @@ Public Kaggle "Car Insurance Claim Prediction" dataset: 58,592 policies, 42 pred
 - **Model building:** Responsible for the logistic regression and XGBoost models, including the XGBoost hyperparameter search under five-fold cross-validation.
 - **Preprocessing:** Contributed to the SMOTE implementation and the one-hot encoding step.
 - **Research:** Investigated why SMOTE may distort predicted probabilities, which became Section 5.2 of the report.
-- **Statistical analysis:** Designed and implemented the Brier score, calibration analysis, and paired bootstrap confidence intervals and significance tests reported throughout the paper.
+- **Statistical analysis:** Designed the Brier score, calibration analysis, and paired bootstrap confidence intervals and significance tests reported throughout the paper.
 - **Visualization:** Design confusion matrix.
 - **Report writing:** Co-wrote the report with my teammates.
 
