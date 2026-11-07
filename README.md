@@ -10,7 +10,7 @@ Public Kaggle "Car Insurance Claim Prediction" dataset: 58,592 policies, 42 pred
 .
 ├── R/
 │   └── claim_occurrence_predictor.R   # main pipeline: train, tune, evaluate
-├── figures/                           # key result figures (used above)
+├── figures/                           # key result figures
 ├── data/
 │   └── train.csv                      
 ├── claim_occurrence_project.pdf       # full write-up
@@ -20,11 +20,10 @@ Public Kaggle "Car Insurance Claim Prediction" dataset: 58,592 policies, 42 pred
 ## My Contribution
 
 - **Project leadership:** Led our team's investigation comparing supervised models for auto-insurance claim prediction.
-- **Evaluation protocol:** In consultation with my teammates, designed the leakage-conscious evaluation protocol used throughout the study (train/test split before preprocessing, SMOTE confined to CV training folds, thresholds chosen on out-of-fold predictions).
-- **Model building:** Responsible for the logistic regression and XGBoost models, including the XGBoost hyperparameter search under five-fold cross-validation.
+- **Evaluation protocol:** Collaborated with teammates to design the evaluation protocol used throughout the study (train/test split before preprocessing, SMOTE confined to CV training folds, thresholds chosen on out-of-fold predictions).
+- **Model building:** Responsible for the logistic regression and XGBoost models, including five-fold cross-validation of XGBoost.
 - **Preprocessing:** Contributed to the SMOTE implementation and the one-hot encoding step.
-- **Research:** Investigated why SMOTE may distort predicted probabilities, which became Section 5.2 of the report.
-- **Statistical analysis:** Designed the analysis of Brier score, calibration analysis, and paired bootstrap confidence intervals and significance tests reported throughout the paper.
+- **Research:** Investigated why SMOTE may distort predicted probabilities, which became Section 5.2 of the report, as well as the analysis of Brier score, calibration analysis, and paired bootstrap confidence intervals and significance tests reported throughout the paper.
 - **Visualization:** Designed confusion matrix.
 - **Report writing:** Co-wrote the report with my teammates.
 
