@@ -5,7 +5,7 @@
 
 pkgs <- c(
   "caret", "MLmetrics", "smotefamily", "PRROC", "xgboost",
-  "randomForest", "rpart", "ggplot2", "dplyr"
+  "randomForest", "rpart", "ggplot2", "dplyr", "tidyr"
 )
 
 missing_pkgs <- setdiff(pkgs, rownames(installed.packages()))
@@ -623,11 +623,11 @@ print(
 )
 
 ## 9. Paired Bootstrap Confidence Intervals -------------------------------------
-B         <- 1000
+B <- 1000
 BOOT_SEED <- 123
 
 y01 <- as.integer(y_test == POS)
-n   <- length(y01)
+n <- length(y01)
 
 ### 9.1 Metric functions
 auc_roc <- function(prob, y) {
