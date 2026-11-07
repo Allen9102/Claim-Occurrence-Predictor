@@ -1,61 +1,21 @@
-## =============================================================================
-##  Insurance Claim Prediction: No SMOTE vs. With SMOTE
-##  Models: Logistic Regression | XGBoost | Decision Tree | Random Forest
-## =============================================================================
-##
-##  WHAT THIS SCRIPT DOES
-##  ----------------------------------------------------------------------------
-##  Trains and compares four binary classifiers that predict whether an
-##  insurance policy will file a claim (target column `is_claim`), once
-##  WITHOUT class-balancing and once WITH SMOTE oversampling, so the two
-##  scenarios can be compared side by side on the same held-out test set.
-##
-##  HOW TO RUN
-##  ----------------------------------------------------------------------------
-##  1. Set DATA_PATH below to the location of your train.csv
-##     (expects one row per policy, a binary `is_claim` column, and a
-##     `policy_id` identifier column that is dropped before modelling).
-##  2. Run the whole script top to bottom (e.g. `Rscript
-##     insurance_claim_smote_comparison.R`, or source it in RStudio).
-##  3. Missing packages are installed automatically on first run.
-##  4. Optional: run report_extras.R afterwards, IN THE SAME R SESSION, for
-##     Brier score and calibration-plot diagnostics (see that file's header).
-##
-##  RUNTIME NOTE
-##  ----------------------------------------------------------------------------
-##  Most of the time goes into the XGBoost grid search in Section 3
-##  (nrow(xgb_grid) x CV_FOLDS x 2 scenarios full model fits). Shrink
-##  `xgb_grid` for a quick smoke-test run before committing to the full grid.
-##
-##  METHODOLOGY / WHY THE WORKFLOW IS SET UP THIS WAY
-##  ----------------------------------------------------------------------------
-##  (identical for both scenarios, only the SMOTE switch differs)
-##    1. Split train / test FIRST  -> the test set is never touched until the end
-##    2. Fit all preprocessing on the training set only
-##    3. Tune with 5-fold CV using the SAME folds for every model;
-##       SMOTE (if on) is applied INSIDE each CV training fold only,
-##       so synthetic rows never leak into a validation fold
-##    4. Choose the classification threshold on out-of-fold training predictions
-##    5. Score the test set exactly once
-##  This avoids the most common sources of data leakage in imbalanced-class
-##  problems: fitting preprocessing/SMOTE before the split, tuning a decision
-##  threshold on the test set, and letting SMOTE-duplicated rows spill into a
-##  validation fold.
-## =============================================================================
-
+## Claim: Our code was reorganized with the assistance of AI because four team members contributed to the coding. 
+## The underlying logic remains essentially the same, while AI helped standardize variable names, streamline function calls, and improve the overall code structure.
 
 ## 0. Setup ---------------------------------------------------------------------
 
 pkgs <- c(
   "caret", "MLmetrics", "smotefamily", "PRROC", "xgboost",
-  "randomForest", "rpart", "ggplot2", "dplyr"
+  "randomForest", "rpart", "ggplot2", "dplyr", "tidyr"
 )
+
 missing_pkgs <- setdiff(pkgs, rownames(installed.packages()))
+
 if (length(missing_pkgs) > 0) install.packages(missing_pkgs)
+
 invisible(lapply(pkgs, library, character.only = T))
 
 ## ---- Configuration ----
-DATA_PATH  <- "/Users/allen/Downloads/Coding & Apps/R/R for DS/project/train.csv"
+DATA_PATH  <- "/Users/.../train.csv"
 SEED       <- 123
 TRAIN_P    <- 0.8                            # train / test split ratio
 CV_FOLDS   <- 5
@@ -68,22 +28,16 @@ NEG        <- "No"
 
 ## ---- Hyperparameter grids (shrink these for a quick test run) ----
 xgb_grid <- expand.grid(
-  nrounds          = 100,
+  nrounds          = c(100, 200, 300),
   max_depth        = c(3, 4, 5),
   eta              = 0.1,
-  gamma            = c(0, 0.5, 1, 2),
-  colsample_bytree = c(0.6),
-  min_child_weight = c(1),
-  subsample        = c(0.8)
-)                                            # nrow(xgb_grid) combinations x 5 folds (slowest step)
+  gamma            = 1,
+  colsample_bytree = 0.6,
+  min_child_weight = c(1, 5, 10),
+  subsample        = 0.8
+)                   
 
 tree_grid <- data.frame(cp = c(1e-4, 2e-4, 5e-4, 1e-3, 2e-3, 5e-3, 1e-2))
-
-## Optional: parallel backend (uncomment; remember to call stopCluster(cl) at the end)
-# library(doParallel)
-# cl <- makePSOCKcluster(parallel::detectCores() - 1)
-# registerDoParallel(cl)
-
 
 ## 1. Load Data & Exploratory Analysis ------------------------------------------
 
@@ -229,9 +183,7 @@ wrap_caret <- function(fit) {
 }
 
 ## ---- XGBoost: grid search with CV (SMOTE only inside training folds) ----
-##  Written with xgboost's own API instead of caret's "xgbTree", because caret
-##  (6.0-94) fails with xgboost >= 3.0. Bonus: SMOTE runs once per fold rather
-##  than once per fold x grid row.
+##  Written with xgboost's own API instead of caret's "xgbTree", because caret (6.0-94) fails with xgboost >= 3.0.
 tune_xgboost <- function(use_smote, scenario) {
   sampler <- if (use_smote) make_smote(SMOTE_K, SMOTE_DUP)$func else NULL
   to_dmatrix <- function(x, y = NULL) {
@@ -432,6 +384,8 @@ cv_fold_report <- function(model, thr) {
 }
 
 ## ---- Plot helpers ----
+
+### Threshold curves
 plot_threshold_curves <- function(thr_all, summary_tbl, scenario) {
   f_label <- paste0("F", BETA)
   best    <- filter(summary_tbl, Scenario == scenario)
@@ -459,6 +413,7 @@ plot_threshold_curves <- function(thr_all, summary_tbl, scenario) {
           plot.subtitle = element_text(hjust = 0.5))
 }
 
+### Confusion matrix
 plot_confusion <- function(cm_all, scenario) {
   ggplot(filter(cm_all, Scenario == scenario),
          aes(x = Actual, y = Predicted, fill = Freq)) +
@@ -475,6 +430,7 @@ plot_confusion <- function(cm_all, scenario) {
     theme(plot.title = element_text(hjust = 0.5), legend.position = "none")
 }
 
+### PR curve
 plot_pr_curves <- function(pr_all, base_rate) {
   ggplot(pr_all, aes(x = Recall, y = Precision, colour = Model)) +
     geom_line(linewidth = 0.8) +
@@ -489,6 +445,7 @@ plot_pr_curves <- function(pr_all, base_rate) {
           plot.subtitle = element_text(hjust = 0.5))
 }
 
+### A glance of comparison
 plot_comparison <- function(summary_tbl) {
   long <- bind_rows(
     transmute(summary_tbl, Scenario, Model, Metric = "PR-AUC", Value = PR_AUC),
@@ -524,8 +481,7 @@ for (r in results) {
 
 
 ## 5. Logistic Regression: Statistical Significance -----------------------------
-##    Uses the ORIGINAL training data only. SMOTE creates synthetic rows, which
-##    inflates the sample size and makes p-values meaningless.
+##    Uses the ORIGINAL training data only. SMOTE creates synthetic rows, which inflates the sample size and makes p-values meaningless.
 
 sig_data <- cbind(X_train, claim = as.integer(y_train == POS))
 sig_fit  <- glm(claim ~ ., data = sig_data, family = binomial(link = "logit"))
@@ -587,10 +543,6 @@ for (scn in names(results)) {
 
 
 ## 7. Cross-Validation Detail (training set, 5 folds) ---------------------------
-##    PR-AUC does not depend on a threshold. Precision / Recall / F1 use the
-##    threshold chosen on the pooled out-of-fold predictions, so they are mildly
-##    optimistic. Hyperparameters and threshold were both selected on these same
-##    folds (no nested CV), so treat the test-set numbers as the clean ones.
 
 cv_detail <- lapply(results, function(r) {
   setNames(
@@ -620,3 +572,256 @@ for (scn in names(cv_detail)) {
     row.names = FALSE
   )
 }
+
+## 8. Brier Score and Calibration Plot -----------------------------------------
+
+### 8.1 Brier score
+y01 <- as.integer(y_test == POS)
+
+brier_table <- bind_rows(lapply(results, function(r) {
+  bind_rows(lapply(names(r$fits), function(nm) {
+    prob <- r$fits[[nm]]$predict_prob(X_test)
+    data.frame(Scenario = r$scenario, Model = nm, Brier = mean((prob - y01)^2))
+  }))
+}))
+
+cat("\n===== Brier score (test set, lower = better) =====\n")
+cat("Reference: always predicting the claim rate gives",
+    round(base_rate * (1 - base_rate), 4), "\n")
+print(brier_table %>% mutate(Brier = round(Brier, 4)), row.names = FALSE)
+
+
+### 8.2 Calibration plot
+calibration_df <- function(model, model_name, scenario, bins = 10) {
+  prob   <- model$predict_prob(X_test)
+  breaks <- unique(quantile(prob, probs = seq(0, 1, length.out = bins + 1)))
+  data.frame(prob = prob, y = as.integer(y_test == POS)) %>%
+    mutate(bin = cut(prob, breaks, include.lowest = TRUE)) %>%
+    group_by(bin) %>%
+    summarise(mean_pred = mean(prob), obs_rate = mean(y), n = n(), .groups = "drop") %>%
+    mutate(Model = model_name, Scenario = scenario)
+}
+
+cal_all <- bind_rows(lapply(results, function(r) {
+  bind_rows(lapply(names(r$fits), function(nm) {
+    calibration_df(r$fits[[nm]], nm, r$scenario)
+  }))
+}))
+
+print(
+  ggplot(cal_all, aes(x = mean_pred, y = obs_rate, colour = Model)) +
+    geom_abline(slope = 1, intercept = 0, linetype = "dashed", colour = "grey40") +
+    geom_line() +
+    geom_point() +
+    facet_wrap(~ Scenario) +
+    labs(
+      title = "Calibration (test set, 10 equal-size bins)",
+      x = "Mean predicted probability", y = "Observed claim rate"
+    ) +
+    theme_minimal() +
+    theme(plot.title = element_text(hjust = 0.5))
+)
+
+## 9. Paired Bootstrap Confidence Intervals -------------------------------------
+B <- 1000
+BOOT_SEED <- 123
+
+y01 <- as.integer(y_test == POS)
+n <- length(y01)
+
+### 9.1 Metric functions
+auc_roc <- function(prob, y) {
+  n1 <- sum(y)
+  n0 <- length(y) - n1
+  (sum(rank(prob)[y == 1]) - n1 * (n1 + 1) / 2) / (n1 * n0)   # rank-based ROC-AUC
+}
+
+auc_pr <- function(prob, y) {
+  PRROC::pr.curve(
+    scores.class0 = prob[y == 1],
+    scores.class1 = prob[y == 0]
+  )$auc.integral
+}
+
+brier <- function(prob, y) mean((prob - y)^2)
+
+metric_fns <- list(ROC_AUC = auc_roc, PR_AUC = auc_pr, Brier = brier)
+
+### 9.2 Test-set predictions for all model-scenario combinations (computed once)
+pred_list <- list()
+for (r in results) {
+  for (nm in names(r$fits)) {
+    pred_list[[paste(r$scenario, nm, sep = " | ")]] <- r$fits[[nm]]$predict_prob(X_test)
+  }
+}
+combos <- names(pred_list)
+
+### 9.3 Bootstrap resamples (shared by every model)
+set.seed(BOOT_SEED)
+boot_idx <- replicate(B, sample.int(n, n, replace = TRUE))   # n x B matrix of row indices
+
+boot_vals <- array(
+  NA_real_,
+  dim      = c(B, length(combos), length(metric_fns)),
+  dimnames = list(NULL, combos, names(metric_fns))
+)
+
+for (b in seq_len(B)) {
+  idx <- boot_idx[, b]
+  yb  <- y01[idx]
+  for (k in combos) {
+    pb <- pred_list[[k]][idx]
+    for (m in names(metric_fns)) {
+      boot_vals[b, k, m] <- metric_fns[[m]](pb, yb)
+    }
+  }
+}
+
+# Point estimates on the full test set
+point_vals <- t(sapply(combos, function(k) {
+  sapply(metric_fns, function(f) f(pred_list[[k]], y01))
+}))
+
+### 9.4 Table: each model with its 95% interval
+ci_bounds <- function(x) quantile(x, c(0.025, 0.975), names = FALSE)
+
+perf_ci <- bind_rows(lapply(combos, function(k) {
+  bind_rows(lapply(names(metric_fns), function(m) {
+    bounds <- ci_bounds(boot_vals[, k, m])
+    data.frame(
+      Scenario = sub(" \\| .*", "", k),
+      Model    = sub(".* \\| ", "", k),
+      Metric   = m,
+      Estimate = point_vals[k, m],
+      Lower    = bounds[1],
+      Upper    = bounds[2]
+    )
+  }))
+}))
+
+cat("\n===== Test-set performance with 95% bootstrap CI =====\n")
+print(
+  perf_ci %>%
+    mutate(Value = sprintf("%.3f [%.3f, %.3f]", Estimate, Lower, Upper)) %>%
+    dplyr::select(Scenario, Model, Metric, Value) %>%
+    tidyr::pivot_wider(names_from = Metric, values_from = Value),
+  n = Inf
+)
+
+### 9.5 Paired differences
+paired_diff <- function(a, b, label) {
+  bind_rows(lapply(names(metric_fns), function(m) {
+    d      <- boot_vals[, a, m] - boot_vals[, b, m]
+    bounds <- ci_bounds(d)
+    data.frame(
+      Comparison = label,
+      Metric     = m,
+      Estimate   = point_vals[a, m] - point_vals[b, m],
+      Lower      = bounds[1],
+      Upper      = bounds[2],
+      Excludes_0 = bounds[1] > 0 | bounds[2] < 0
+    )
+  }))
+}
+
+model_names <- names(results[["No SMOTE"]]$fits)
+others      <- setdiff(model_names, "XGBoost")
+
+# XGBoost minus each other model, without SMOTE (3 models x 3 metrics = 9 comparisons)
+diff_models <- bind_rows(lapply(others, function(nm) {
+  paired_diff("No SMOTE | XGBoost", paste("No SMOTE |", nm), paste("XGBoost -", nm))
+}))
+
+# With SMOTE minus No SMOTE, per model (4 models x 3 metrics = 12 comparisons)
+diff_smote <- bind_rows(lapply(model_names, function(nm) {
+  paired_diff(paste("With SMOTE |", nm), paste("No SMOTE |", nm), nm)
+}))
+
+show_diff <- function(df) {
+  df %>%
+    mutate(Value = sprintf("%+.4f [%+.4f, %+.4f]%s", Estimate, Lower, Upper,
+                           ifelse(Excludes_0, " *", ""))) %>%
+    dplyr::select(Comparison, Metric, Value) %>%
+    tidyr::pivot_wider(names_from = Metric, values_from = Value)
+}
+
+cat("\n===== XGBoost minus other models, No SMOTE (* = 95% CI excludes 0) =====\n")
+print(show_diff(diff_models), n = Inf, width = Inf)
+
+cat("\n===== Effect of SMOTE: With - No (* = 95% CI excludes 0) =====\n")
+print(show_diff(diff_smote), n = Inf, width = Inf)
+
+cat("\nNumber of paired comparisons:", nrow(diff_models) + nrow(diff_smote), "\n")
+
+### 9.6 Plots
+metric_labels <- c(
+  ROC_AUC = "ROC-AUC (higher is better)",
+  PR_AUC  = "PR-AUC (higher is better)",
+  Brier   = "Brier score (lower is better)"
+)
+
+ref_lines <- data.frame(
+  Metric = factor(names(metric_labels), levels = names(metric_labels), labels = metric_labels),
+  ref    = c(0.5, mean(y01), mean(y01) * (1 - mean(y01)))
+)
+
+# Model order: Logistic Regression at the top
+model_order <- rev(c("Logistic Regression", "XGBoost", "Decision Tree", "Random Forest"))
+
+print(
+  perf_ci %>%
+    mutate(
+      Metric = factor(Metric, levels = names(metric_labels), labels = metric_labels),
+      Model  = factor(Model, levels = model_order)
+    ) %>%
+    ggplot(aes(x = Estimate, y = Model, colour = Scenario)) +
+    geom_vline(data = ref_lines, aes(xintercept = ref), linetype = "dotted", colour = "grey40") +
+    geom_pointrange(
+      aes(xmin = Lower, xmax = Upper),
+      position = position_dodge(width = 0.6), size = 0.4
+    ) +
+    facet_wrap(~ Metric, scales = "free_x") +
+    scale_colour_manual(values = c("No SMOTE" = "#1f4e79", "With SMOTE" = "#c55a11")) +
+    labs(
+      title = "Test-set metrics with 95% bootstrap confidence intervals",
+      subtitle = "Dotted line = no-skill reference",
+      x = NULL, y = NULL, colour = NULL
+    ) +
+    theme_minimal() +
+    theme(plot.title = element_text(hjust = 0.5), plot.subtitle = element_text(hjust = 0.5),
+          legend.position = "bottom")
+)
+
+plot_diff <- function(df, title, subtitle, order = NULL) {
+  df <- df %>%
+    mutate(
+      Metric     = factor(Metric, levels = names(metric_labels), labels = metric_labels),
+      Comparison = factor(Comparison, levels = rev(if (is.null(order)) unique(Comparison) else order))
+    )
+  ggplot(df, aes(x = Estimate, y = Comparison, shape = Excludes_0)) +
+    geom_vline(xintercept = 0, linetype = "dashed", colour = "grey40") +
+    geom_pointrange(aes(xmin = Lower, xmax = Upper), colour = "#1f4e79", size = 0.4, fill = "white") +
+    facet_wrap(~ Metric, scales = "free_x") +
+    scale_shape_manual(
+      values = c(`TRUE` = 19, `FALSE` = 21),
+      labels = c(`TRUE` = "CI excludes 0", `FALSE` = "CI includes 0"),
+      name   = NULL
+    ) +
+    labs(title = title, subtitle = subtitle, x = NULL, y = NULL) +
+    theme_minimal() +
+    theme(plot.title = element_text(hjust = 0.5), plot.subtitle = element_text(hjust = 0.5),
+          legend.position = "bottom")
+}
+
+print(plot_diff(
+  diff_models,
+  "Paired differences: XGBoost minus each other model (No SMOTE)",
+  "ROC-AUC and PR-AUC: positive favours XGBoost. Brier: negative favours XGBoost."
+))
+
+print(plot_diff(
+  diff_smote,
+  "Effect of SMOTE: With SMOTE minus No SMOTE",
+  "ROC-AUC and PR-AUC: positive = SMOTE better. Brier: positive = SMOTE worse.",
+  order = model_names
+))
